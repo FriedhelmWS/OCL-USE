@@ -8,7 +8,6 @@ class User
 attributes
 id: Integer
 logIn: Boolean
-ismember:Boolean
 operations
 borrowBook(b:Book)
 returnBook(b:Book)
@@ -39,6 +38,8 @@ setCategory(b:Book)
 end
 
 class Member < User
+attributes
+ismember:Boolean
 operations
 reserveBook(b:Book)
 end
@@ -83,4 +84,8 @@ context User
 inv: self.id<>null and self.includes<>null
 inv: self.includes.joined.id->asSet()->size()=self.includes.joined.id->asSequence()->size()
 
+
+context Library::addUser(u:User)
+pre: self.joined->excludes(u)
+post:  self.joined->includes(u)
 

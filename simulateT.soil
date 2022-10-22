@@ -4,7 +4,6 @@
 !new Book
 !User1.id := 1
 !User1.logIn := false
-!User1.ismember := false
 !Book1.borrowed := false
 !Book1.publishyear := 2000
 !Book1.category := Category::SciFi
@@ -22,5 +21,18 @@
 !new User
 !User2.id := 1
 !User2.logIn := false
-!User2.ismember := false
 !insert (Library1,User2) into Include
+!User1.id := 2
+!new Member
+!Member1.id := 1
+!Member1.logIn := false
+!Member1.ismember := true
+!insert (Library1,Member1) into Include
+!Member1.id := 2
+!Member1.id := 3
+!new User
+!User3.id := 4
+!User3.logIn := false
+!openter Library1 addUser(User3)
+!insert (Library1,User3) into Include
+!opexit
