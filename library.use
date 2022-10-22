@@ -1,0 +1,86 @@
+model course_student
+
+-- Enumerations
+enum Category {Fantasy, SciFi, Mystery, Romance}
+-- Classes
+
+class User
+attributes
+id: Integer
+logIn: Boolean
+ismember:Boolean
+operations
+borrowBook(b:Book)
+returnBook(b:Book)
+returnAllBooks(u:User)
+login(u:User)
+logout(u:User)
+buyMember(u:User)
+end
+
+class Book
+attributes
+title: String
+category: Category
+borrowed : Boolean
+publishyear : Integer
+author : String
+end
+
+class Library
+attributes
+name: String
+operations
+addBook(b:Book)
+removeBook(b:Book)
+addUser(u:User)
+removeUser(u:User)
+setCategory(b:Book)
+end
+
+class Member < User
+operations
+reserveBook(b:Book)
+end
+
+
+
+-- A S S O C I A T I O N S --
+-- Borrow: a user can borrow a number of books
+association Borrow between
+  User[1] role borrower
+  Book[1..*] role borrowed
+end
+
+-- Stores: a Library stores a number of books
+association Stores between
+  Library[1] role contains
+  Book[0..*] role belongs
+end
+
+-- Include: a Library stores a number of users
+association Include between
+  Library[1] role includes
+  User[0..*] role joined
+end
+
+-- Reserve: a member can revserve one book
+association Reserve between
+  Member[1] role reserver
+  Book[1] role reserved
+end
+
+constraints
+
+context Member
+inv: self.ismember=true
+
+context Book
+inv: self.author<>null and self.publishyear<>null and self.category<>null and self.title<>null
+inv: self.contains<>null
+
+context User
+inv: self.id<>null and self.includes<>null
+inv: self.includes.joined.id->asSet() = Set{self.id}
+
+
