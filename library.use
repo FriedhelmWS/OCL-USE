@@ -21,7 +21,8 @@ class Book
 attributes
 title: String
 category: Category
-borrowed : Boolean
+isborrowed : Boolean
+isreserved : Boolean
 publishyear : Integer
 author : String
 end
@@ -89,3 +90,7 @@ context Library::addUser(u:User)
 pre: self.joined->excludes(u)
 post:  self.joined->includes(u)
 
+context Library::removeUser(u:User)
+pre: self.joined->includes(u) and u.borrowed->isEmpty()
+post: Book.allInstances()->forAll(b: Book | if b.isreserved=true and b.reserver=null then b.isreserved = false else b=b endif)
+post: self.joined->excludes(u) and User.allInstances()->excludes(u)

@@ -4,7 +4,6 @@
 !new Book
 !User1.id := 1
 !User1.logIn := false
-!Book1.borrowed := false
 !Book1.publishyear := 2000
 !Book1.category := Category::SciFi
 !Book1.category := Category::SciFi
@@ -36,3 +35,29 @@
 !openter Library1 addUser(User3)
 !insert (Library1,User3) into Include
 !opexit
+!openter Library1 removeUser(User3)
+!delete (Library1,User3) from Include
+!opexit
+!insert (Library1,User3) into Include
+!openter Library1 removeUser(User3)
+!destroy User3
+!opexit
+!insert (User1,Book1) into Borrow
+!openter Library1 removeUser(User1)
+!delete (User1,Book1) from Borrow
+!openter Library1 removeUser(Member1)
+!delete (Library1,Member1) from Include
+!opexit
+!insert (Library1,Member1) into Include
+!openter Library1 removeUser(Member1)
+!destroy Member1
+!opexit
+!Book1.isreserved := false
+!Book1.isborrowed := false
+!new Member
+!Member2.id := 3
+!Member2.logIn := false
+!Member2.ismember := true
+!insert (Library1,Member2) into Include
+!insert (Member2,Book1) into Reserve
+!Book1.isreserved := true
