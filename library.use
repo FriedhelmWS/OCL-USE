@@ -76,11 +76,11 @@ context Member
 inv: self.ismember=true
 
 context Book
-inv: self.author<>null and self.publishyear<>null and self.category<>null and self.title<>null
+inv: self.author<>null and self.publishyear<>null and self.title<>null
 inv: self.contains<>null
 
 context User
 inv: self.id<>null and self.includes<>null
-inv: self.includes.joined.id->asSet() = Set{self.id}
+inv: self.includes.joined.id->asSet()->size()=self.includes.joined.id->asSequence()->size()
 
 
