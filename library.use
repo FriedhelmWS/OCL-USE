@@ -11,7 +11,7 @@ isLoggedIn: Boolean
 operations
 borrowBook(b:Book)
 returnBook(b:Book)
-returnAllBooks(u:User)
+returnAllBooks()
 logIn(l:Library)
 logOut(l:Library)
 end
@@ -130,3 +130,15 @@ pre: self.isLoggedIn and self.reserved = null
 pre: b.isreserved=false and b.reserver=null
 pre: if b.isborrowed then if b.borrower=self then false else true endif else true endif
 post: b.isreserved=true and b.reserver=self
+
+
+context User::returnBook(b:Book)
+pre: self.borrowed->includes(b) and self.isLoggedIn
+post: self.borrowed->excludes(b)
+post: b.isborrowed=false
+
+
+context User::returnAllBooks()
+pre: self.borrowed->notEmpty() and self.isLoggedIn
+post: self.borrowed->isEmpty
+post: Book.allInstances()->forAll(b: Book | if b.isborrowed=true and b.borrower=null then b.isreserved = false else b=b endif)
