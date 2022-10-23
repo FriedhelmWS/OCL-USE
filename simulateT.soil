@@ -2,7 +2,6 @@
 
 !new User
 !new Book
-!User1.id := 1
 !Book1.publishyear := 2000
 !Book1.category := Category::SciFi
 !Book1.category := Category::SciFi
@@ -17,18 +16,11 @@
 !insert (Library1,Book1) into Stores
 !Book1.title := 'Nice Day'
 !new User
-!User2.id := 1
 !insert (Library1,User2) into Include
-!User1.id := 2
 !new Member
-!Member1.id := 1
 !Member1.ismember := true
 !insert (Library1,Member1) into Include
-!Member1.id := 2
-!Member1.id := 3
 !new User
-!User3.id := 4
-!openter Library1 addUser(User3)
 !insert (Library1,User3) into Include
 !opexit
 !openter Library1 removeUser(User3)
@@ -51,7 +43,6 @@
 !Book1.isreserved := false
 !Book1.isborrowed := false
 !new Member
-!Member2.id := 3
 !Member2.ismember := true
 !insert (Library1,Member2) into Include
 !insert (Member2,Book1) into Reserve
@@ -105,3 +96,12 @@
 !Book1.isborrowed := false
 !Book1.isreserved := true
 !opexit
+!new Id
+!new Id
+!new Id
+!Id1.number := 1
+!Id2.number := 2
+!Id3.number := 3
+!insert (User1,Id1) into IdAssign
+!insert (Member2,Id3) into IdAssign
+!insert (User2,Id2) into IdAssign
