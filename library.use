@@ -6,6 +6,7 @@ enum Category {Fantasy, SciFi, Mystery, Romance}
 
 class User
 attributes
+id: Integer
 isLoggedIn: Boolean
 operations
 borrowBook(b:Book)
@@ -13,11 +14,6 @@ returnBook(b:Book)
 returnAllBooks(u:User)
 logIn(l:Library)
 logOut(l:Library)
-end
-
-class Id
-attributes
-number: Integer
 end
 
 class Book
@@ -36,10 +32,10 @@ name: String
 operations
 addBook(b:Book)
 removeBook(b:Book)
-addUser(u:User,i:Id)
+addUser(u:User,i:Integer)
 removeUser(u:User)
 setCategory(b:Book)
-buyMember(u:User,i:Id):Member
+buyMember(u:User,i:Integer):Member
 end
 
 class Member < User
@@ -52,12 +48,6 @@ end
 
 
 -- A S S O C I A T I O N S --
--- IdAssign: assign id to user
-association IdAssign between
-  User[1] role assigner
-  Id[1] role id
-end
-
 -- Borrow: a user can borrow a number of books
 association Borrow between
   User[1] role borrower
@@ -99,10 +89,10 @@ context Id
 inv: self.number <> null
 inv: Id.allInstances().number->asSet()->size() = Id.allInstances().number->asSequence()->size()
 
-context Library::addUser(u:User, i:Id)
-pre: self.joined->excludes(u) and i.assigner = null
+context Library::addUser(u:User, i:Integer)
+pre: self.joined->excludes(u)
 post: self.joined->includes(u)
-post: u.id = i and i.assigner = u
+post: u.id = i
 
 context Library::removeUser(u:User)
 pre: self.joined->includes(u) and u.borrowed->isEmpty()
@@ -133,7 +123,7 @@ context User::logOut(l:Library)
 pre: l.joined->includes(self) and self.isLoggedIn=true
 post: self.isLoggedIn=false
 
-context Library::buyMember(u:User, i:Id):Member
+context Library::buyMember(u:User, i:Integer):Member
 pre: u.isLoggedIn = true and self.joined->includes(u) and u.id=i
 post: result.oclIsNew() and result.id = i
 post: Member.allInstances()->includes(result) and self.joined->includes(result)
