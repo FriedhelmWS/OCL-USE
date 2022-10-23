@@ -19,7 +19,7 @@ end
 class Book
 attributes
 title: String
-category: Category
+category: Set(Category)
 isborrowed : Boolean
 isreserved : Boolean
 publishyear : Integer
@@ -84,10 +84,6 @@ inv: self.contains<>null
 context User
 inv: self.id<>null and self.includes<>null
 inv: self.includes.joined.id->asSet()->size()=self.includes.joined.id->asSequence()->size()
-
-context Id
-inv: self.number <> null
-inv: Id.allInstances().number->asSet()->size() = Id.allInstances().number->asSequence()->size()
 
 context Library::addUser(u:User, i:Integer)
 pre: self.joined->excludes(u)
