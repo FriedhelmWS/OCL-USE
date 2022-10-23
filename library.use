@@ -24,6 +24,8 @@ isborrowed : Boolean
 isreserved : Boolean
 publishyear : Integer
 author : String
+operations
+setBookCategory(c: Category)
 end
 
 class Library
@@ -131,14 +133,16 @@ pre: b.isreserved=false and b.reserver=null
 pre: if b.isborrowed then if b.borrower=self then false else true endif else true endif
 post: b.isreserved=true and b.reserver=self
 
-
 context User::returnBook(b:Book)
 pre: self.borrowed->includes(b) and self.isLoggedIn
 post: self.borrowed->excludes(b)
 post: b.isborrowed=false
 
-
 context User::returnAllBooks()
 pre: self.borrowed->notEmpty() and self.isLoggedIn
 post: self.borrowed->isEmpty
 post: Book.allInstances()->forAll(b: Book | if b.isborrowed=true and b.borrower=null then b.isreserved = false else b=b endif)
+
+context Book::setBookCategory(c:Category)
+pre: not(self.category->includes(c)) and self.contains<>null
+post: self.category->includes(c)
