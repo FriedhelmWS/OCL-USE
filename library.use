@@ -7,14 +7,15 @@ enum Category {Fantasy, SciFi, Mystery, Romance}
 class User
 attributes
 id: Integer
-logIn: Boolean
+isLoggedIn: Boolean
+
 operations
 borrowBook(b:Book)
 returnBook(b:Book)
 returnAllBooks(u:User)
-login(u:User)
-logout(u:User)
-buyMember(u:User)
+logIn(l:Library)
+logOut(l:Library)
+buyMember(l:Library)
 end
 
 class Book
@@ -94,3 +95,20 @@ context Library::removeUser(u:User)
 pre: self.joined->includes(u) and u.borrowed->isEmpty()
 post: Book.allInstances()->forAll(b: Book | if b.isreserved=true and b.reserver=null then b.isreserved = false else b=b endif)
 post: self.joined->excludes(u) and User.allInstances()->excludes(u)
+
+context Library::addBook(b:Book)
+pre: self.belongs->excludes(b)
+post:  self.belongs->includes(b)
+
+context Library::removeBook(b:Book)
+pre: self.belongs->includes(b) and b.isborrowed=false
+post: Member.allInstances()->forAll(m: Member | if m.reserved->includes(b) then m.reserved=null else m.reserved=m.reserved endif)
+post: self.belongs->excludes(b) and Book.allInstances()->excludes(b)
+
+context User::logIn(l:Library)
+pre: l.joined->includes(self) and self.isLoggedIn=false
+post: self.isLoggedIn=true
+
+context User::logOut(l:Library)
+pre: l.joined->includes(self) and self.isLoggedIn=true
+post: self.isLoggedIn=false
