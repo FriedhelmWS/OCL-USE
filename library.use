@@ -133,7 +133,7 @@ pre: l.joined->includes(self) and self.isLoggedIn=true
 post: self.isLoggedIn=false
 
 context Library::buyMember(u:User, i:Id):Member
-pre: u.isLoggedIn = true and self.joined->includes(u)
+pre: u.isLoggedIn = true and self.joined->includes(u) and u.id=i
 post: result.oclIsNew() and result.id = i
 post: Member.allInstances()->includes(result) and self.joined->includes(result)
 post: User.allInstances()->excludes(u) 
