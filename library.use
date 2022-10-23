@@ -146,3 +146,7 @@ post: Book.allInstances()->forAll(b: Book | if b.isborrowed=true and b.borrower=
 context Book::setBookCategory(c:Category)
 pre: not(self.category->includes(c)) and self.contains<>null
 post: self.category->includes(c)
+
+context Book::removeBookCategory(c:Category)
+pre: self.category->includes(c) and self.contains<>null
+post: self.category->excludes(c)
