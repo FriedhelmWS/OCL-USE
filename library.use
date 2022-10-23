@@ -15,7 +15,6 @@ returnBook(b:Book)
 returnAllBooks(u:User)
 logIn(l:Library)
 logOut(l:Library)
-buyMember(l:Library)
 end
 
 class Book
@@ -37,6 +36,7 @@ removeBook(b:Book)
 addUser(u:User)
 removeUser(u:User)
 setCategory(b:Book)
+buyMember(u:User):Member
 end
 
 class Member < User
@@ -120,3 +120,8 @@ context User::logOut(l:Library)
 pre: l.joined->includes(self) and self.isLoggedIn=true
 post: self.isLoggedIn=false
 
+context Library::buyMember(u:User):Member
+pre: u.isLoggedIn = true and self.joined->includes(u)
+post: result.oclIsNew() and User.allInstances()->forAll(u | u.id=u.id@pre)
+post: Member.allInstances()->includes(result) and self.joined->includes(result)
+post: User.allInstances()->excludes(u) 
