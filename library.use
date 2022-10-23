@@ -125,3 +125,8 @@ pre: u.isLoggedIn = true and self.joined->includes(u)
 post: result.oclIsNew() and User.allInstances()->forAll(u | u.id=u.id@pre)
 post: Member.allInstances()->includes(result) and self.joined->includes(result)
 post: User.allInstances()->excludes(u) 
+
+context Member::reserveBook(b:Book)
+pre: self.isLoggedIn and self.reserved = null
+pre: b.isreserved=false and b.reserver=null
+post: b.isreserved=true and b.reserver=self
