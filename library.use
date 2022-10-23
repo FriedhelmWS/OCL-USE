@@ -24,8 +24,6 @@ isborrowed : Boolean
 isreserved : Boolean
 publishyear : Integer
 author : String
-operations
-setBookCategory(c: Category)
 end
 
 class Library
@@ -36,7 +34,8 @@ addBook(b:Book)
 removeBook(b:Book)
 addUser(u:User,i:Integer)
 removeUser(u:User)
-setCategory(b:Book)
+setCategory(b:Book,c:Category)
+removeCategory(b:Book,c:Category)
 buyMember(u:User,i:Integer):Member
 end
 
@@ -143,10 +142,10 @@ pre: self.borrowed->notEmpty() and self.isLoggedIn
 post: self.borrowed->isEmpty
 post: Book.allInstances()->forAll(b: Book | if b.isborrowed=true and b.borrower=null then b.isreserved = false else b=b endif)
 
-context Book::setBookCategory(c:Category)
-pre: not(self.category->includes(c)) and self.contains<>null
-post: self.category->includes(c)
+context Library::setCategory(b:Book,c:Category)
+pre: not(b.category->includes(c)) and self.belongs->includes(b)
+post: b.category->includes(c)
 
-context Book::removeBookCategory(c:Category)
-pre: self.category->includes(c) and self.contains<>null
-post: self.category->excludes(c)
+context Library::removeCategory(b:Book,c:Category)
+pre: b.category->includes(c) and self.belongs->includes(b)
+post: b.category->excludes(c)

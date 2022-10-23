@@ -161,3 +161,11 @@
 !openter Library1 removeBook(Book3)
 !destroy Book3
 !opexit
+!openter Library1 setCategory(Book2, Category::SciFi)
+!openter Library1 setCategory(Book2, Category::Romance)
+!Book2.category := Set {Category::Mystery,Category::SciFi,Category::Romance}
+!opexit
+!openter Library1 removeCategory(Book2, Category::Romance)
+!Book2.category := Set {Category::Mystery,Category::SciFi}
+!opexit
+!openter Library1 removeCategory(Book2, Category::Romance)
