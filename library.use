@@ -105,6 +105,13 @@ pre: self.belongs->includes(b) and b.isborrowed=false
 post: Member.allInstances()->forAll(m: Member | if m.reserved->includes(b) then m.reserved=null else m.reserved=m.reserved endif)
 post: self.belongs->excludes(b) and Book.allInstances()->excludes(b)
 
+context User::borrowBook(b:Book)
+pre: self.isLoggedIn=true and b.isborrowed=false and self.borrowed->excludes(b)
+pre: if self.oclIsTypeOf(Member) then self.oclAsType(Member).reserved=null or self.oclAsType(Member).reserved = b else true endif
+pre: if b.isreserved=true and b.reserver.id=self.id then true else if b.isreserved=false then true else false endif endif
+post: b.isborrowed=true and b.borrower = self and self.borrowed->includes(b)
+post: if b.isreserved=true and b.reserver.id=self.id then b.isreserved=false and b.reserver =null else true endif
+
 context User::logIn(l:Library)
 pre: l.joined->includes(self) and self.isLoggedIn=false
 post: self.isLoggedIn=true
@@ -112,3 +119,4 @@ post: self.isLoggedIn=true
 context User::logOut(l:Library)
 pre: l.joined->includes(self) and self.isLoggedIn=true
 post: self.isLoggedIn=false
+

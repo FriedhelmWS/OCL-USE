@@ -3,7 +3,6 @@
 !new User
 !new Book
 !User1.id := 1
-!User1.logIn := false
 !Book1.publishyear := 2000
 !Book1.category := Category::SciFi
 !Book1.category := Category::SciFi
@@ -19,19 +18,16 @@
 !Book1.title := 'Nice Day'
 !new User
 !User2.id := 1
-!User2.logIn := false
 !insert (Library1,User2) into Include
 !User1.id := 2
 !new Member
 !Member1.id := 1
-!Member1.logIn := false
 !Member1.ismember := true
 !insert (Library1,Member1) into Include
 !Member1.id := 2
 !Member1.id := 3
 !new User
 !User3.id := 4
-!User3.logIn := false
 !openter Library1 addUser(User3)
 !insert (Library1,User3) into Include
 !opexit
@@ -56,8 +52,56 @@
 !Book1.isborrowed := false
 !new Member
 !Member2.id := 3
-!Member2.logIn := false
 !Member2.ismember := true
 !insert (Library1,Member2) into Include
 !insert (Member2,Book1) into Reserve
 !Book1.isreserved := true
+!Member2.isLoggedIn := true
+!User2.isLoggedIn := false
+!User1.isLoggedIn := true
+!new Book
+!Book2.isborrowed := false
+!Book2.isreserved := false
+!Book2.publishyear := 2022
+!Book2.author := 'Owen'
+!Book2.title := 'Good Day'
+!Book2.category := Category::Romance
+!insert (Library1,Book2) into Stores
+!openter User2 borrowBook(Book1)
+!openter User2 borrowBook(Book2)
+!openter User1 borrowBook(Book1)
+!openter User1 borrowBook(Book2)
+!openter Member2 borrowBook(Book1)
+!delete (Member2,Book1) from Reserve
+!insert (Member2,Book1) into Borrow
+!Book1.isborrowed := true
+!Book1.isreserved := false
+!opexit
+!openter User1 borrowBook(Book1)
+!openter User2 borrowBook(Book1)
+!openter User2 borrowBook(Book2)
+!openter User1 borrowBook(Book1)
+!openter User1 borrowBook(Book2)
+!insert (User1,Book2) into Borrow
+!Book2.isborrowed := true
+!opexit
+!openter User1 borrowBook(Book1)
+!openter User1 borrowBook(Book2)
+!delete (User1,Book2) from Borrow
+!Book2.isborrowed := false
+!insert (Member2,Book2) into Reserve
+!Book2.isreserved := true
+!openter User1 borrowBook(Book2)
+!openter Member2 borrowBook(Book2)
+!openter Member2 borrowBook(Book2)
+!delete (Member2,Book2) from Reserve
+!insert (Member2,Book2) into Borrow
+!Book2.isreserved := false
+!Book2.isborrowed := true
+!opexit
+!delete (Member2,Book1) from Borrow
+!delete (Member2,Book2) from Borrow
+!insert (Member2,Book1) into Reserve
+!Book1.isborrowed := false
+!Book1.isreserved := true
+!opexit
