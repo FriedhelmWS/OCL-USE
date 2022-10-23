@@ -127,8 +127,8 @@ post: User.allInstances()->excludes(u)
 
 context Member::reserveBook(b:Book)
 pre: self.isLoggedIn and self.reserved = null
-pre: b.isreserved=false and b.reserver=null
-pre: if b.isborrowed then if b.borrower=self then false else true endif else true endif
+pre: b.isreserved=false and b.reserver=null and b.isborrowed
+pre: if b.borrower=self then false else true endif
 post: b.isreserved=true and b.reserver=self
 
 
