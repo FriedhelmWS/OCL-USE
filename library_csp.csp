@@ -8,7 +8,7 @@ datatype BOOK = Ave | Eno | Eau
 channel left,right,mid: FRUIT
 channel ack
 
-channel add,remove,userinfo,login,logout:USER
+channel newuser,remove,userinfo,login,logout:USER
 channel removed,unabletoremove
 
 channel borrowrequest,lend: BOOK
@@ -16,17 +16,17 @@ channel canlend,cannotlend
 
 
 
-LIBRARY_USERMANGAER = userinfo ? u-> ((add ! u-> LIBRARY_USERMANGAER ) [] (remove ! u -> (removed-> LIBRARY_USERMANGAER |~| unabletoremove-> LIBRARY_USERMANGAER )))
+LIBRARY_USERMANGAER = (newuser ? u -> ((userinfo ! u-> LIBRARY_USERMANGAER )) [] (remove ? u -> (removed-> LIBRARY_USERMANGAER |~| unabletoremove-> LIBRARY_USERMANGAER )))
 
 LIBRARY = borrowrequest ? b -> userinfo ? u -> ((canlend-> lend!b-> LIBRARY) |~| (cannotlend-> LIBRARY))
 
-USERBORROW = login?u->userinfo? u -> borrowrequest!Ave -> userinfo!u -> lend?b -> USERBORROW
+USERBORROW = newuser ? u -> borrowrequest!Ave -> userinfo!u -> lend?b -> USERBORROW
 
 SYSTEM_BORROW = (LIBRARY[| {|borrowrequest,userinfo,lend|} |] USERBORROW)\ {| borrowrequest,userinfo,lend |}
 
-LIBRARY_USERLOGIN = userinfo? u ->((login!u->LIBRARY_USERLOGIN) [] (logout!u -> LIBRARY_USERLOGIN))
+LIBRARY_USERLOGIN = userinfo? u ->((login!u->LIBRARY_USERLOGIN) |~| (logout!u -> LIBRARY_USERLOGIN))
 
-NEWUSERLOGGIN = ( LIBRARY_USERMANGAER ||| LIBRARY_USERLOGIN )\ {| userinfo |}
+NEWUSERLOGGIN = LIBRARY_USERMANGAER  [| {|userinfo|} |] LIBRARY_USERLOGIN
 SYSTEM2 = ( LIBRARY_USERMANGAER [| {|userinfo|} |] LIBRARY_USERLOGIN [| {|login,userinfo|} |] USERBORROW[| {|borrowrequest,userinfo,lend|} |]LIBRARY)\ {| login, userinfo |}
 
 
