@@ -9,15 +9,15 @@ datatype AVAILABLE = yes | no
 channel left,right,mid: FRUIT
 channel ack
 
-channel newuser,remove,userinfo,login:USER
+channel newuser,remove,userinfo,login,removecheck:USER
 channel removed,unabletoremove
 
 channel lend, bookinfo,addbook,removebook,borrowrequest,reserve: BOOK
-channel canlend,cannotlend
+channel canlend,cannotlend,compute
 
 
 channel returnbook,buymember,setbookcat,borrowed, unavailable,reserved,logout,cannotreserve
-channel check,canreserve:AVAILABLE
+channel check,canreserve,canremovuser:AVAILABLE
 
 -- Check the book availability of a book for whether it can be borrowed (in the library and not been reserved)
 -- and check whether it can be reserved (whether has the membership and whether the book is able to be reserved)
@@ -36,25 +36,43 @@ USERIDLE = (borrowrequest?b ->check?c->(borrowed->USERIDLE |~| unavailable->USER
 -- Initialise the library system, where the admin could add/remove books and add/remove users. 
 -- Notice that to remove the user, it is necessary to check can the user be removed or not (for example, if the user has the book on borrow, then he cannot remove)
 
-LIBRARYINIT = (addbook?b->setbookcat->LIBRARYINIT) [] (removebook?b->LIBRARYINIT) [] ( newuser ? u -> userinfo!u-> LIBRARYINIT ) [] remove ? u -> ((removed-> LIBRARYINIT ) |~| (unabletoremove-> LIBRARYINIT  ))
+LIBRARYINIT = (addbook?b->setbookcat->LIBRARYINIT) [] (removebook?b->LIBRARYINIT) [] ( newuser ? u -> userinfo!u-> LIBRARYINIT ) [] remove ? u ->canremovuser?u-> ((removed-> LIBRARYINIT ) |~| (unabletoremove-> LIBRARYINIT  ))
 
 -- The entire library system
 
 LIBRARY_SYSTEM = LIBRARYINIT  [| {|userinfo|}|] USERINIT  [| {|check,borrowrequest,reserve,canreserve|}|]LIBRARY_CHECK
 
--- For testing
-PROB_TEST_TRACE = addbook.Ave -> setbookcat -> login.Tom ->newuser.Tom -> userinfo.Tom -> login.Tom -> buymember -> borrowrequest.Ave -> check.no -> borrowed -> logout -> STOP
+-- For verification
 
-TRUE_TEST_TRACE = addbook.Ave -> setbookcat ->newuser.Tom -> userinfo.Tom -> login.Tom -> buymember -> borrowrequest.Ave  -> borrowed -> logout -> STOP
+-- Failed Verification
 
-REMOVEUSER_TEST_TRACE = newuser.Tom -> userinfo.Tom ->remove.Tom->removed->STOP
+LOGINFAILED_TEST_TRACE = addbook.Ave -> setbookcat -> login.Tom ->newuser.Tom -> userinfo.Tom -> login.Tom -> buymember -> borrowrequest.Ave -> check.no -> borrowed -> logout -> STOP
+
+
+-- Verification
+
+BORROW_RETURN_TEST_TRACE = addbook.Ave -> setbookcat ->newuser.Tom -> userinfo.Tom -> login.Tom -> buymember -> borrowrequest.Ave  -> check.yes->borrowed -> returnbook->logout -> STOP
+
+RESERVE_BORROW_TEST_TRACE = addbook.Ave -> setbookcat ->newuser.Tom -> userinfo.Tom -> login.Tom -> buymember -> reserve.Ave  -> canreserve.yes->reserved ->borrowrequest.Ave  -> check.yes->borrowed-> STOP
+
+RESERVE_UNABLE_TEST_TRACE = addbook.Ave -> setbookcat ->newuser.Tom -> userinfo.Tom -> login.Tom  -> reserve.Ave  -> canreserve.no->reserved -> STOP
+
+REMOVEUSER_TEST_TRACE = newuser.Tom -> userinfo.Tom ->remove.Tom->canremovuser.yes->removed->STOP
+
+ADDBOOK_TEST_TRACE = addbook.Ave -> setbookcat->addbook.Eau -> setbookcat->addbook.Eno -> setbookcat->STOP
 
 GEN = addbook!Ave -> GEN [] addbook!Eno -> GEN [] addbook!Eau -> GEN
 
 MAIN = LIBRARY_SYSTEM [| {|addbook|} |] GEN
 
-assert MAIN [T= PROB_TEST_TRACE
+assert MAIN [T= LOGINFAILED_TEST_TRACE
 
-assert MAIN [T= TRUE_TEST_TRACE
+assert MAIN [T= BORROW_RETURN_TEST_TRACE
+
+assert MAIN [T= RESERVE_BORROW_TEST_TRACE
+
+assert MAIN [T= RESERVE_UNABLE_TEST_TRACE
 
 assert MAIN [T= REMOVEUSER_TEST_TRACE
+
+assert MAIN [T= ADDBOOK_TEST_TRACE
