@@ -4,30 +4,31 @@
 datatype FRUIT = apples | oranges | pears
 datatype USER = Tom | Jennie | Alahkba
 datatype BOOK = Ave | Eno | Eau
+datatype AVAILABLE = yes | no
 
 channel left,right,mid: FRUIT
 channel ack
 
-channel newuser,remove,userinfo,login,logout:USER
+channel newuser,remove,userinfo,login:USER
 channel removed,unabletoremove
 
-channel borrowrequest,lend: BOOK
+channel lend, bookinfo,addbook,removebook,borrowrequest,reserve: BOOK
 channel canlend,cannotlend
 
 
+channel returnbook,buymember,setbookcat,borrowed, unavailable,reserved,logout,cannotreserve
+channel check,canreserve:AVAILABLE
 
-LIBRARY_USERMANGAER = (newuser ? u -> ((userinfo ! u-> LIBRARY_USERMANGAER )) [] (remove ? u -> (removed-> LIBRARY_USERMANGAER |~| unabletoremove-> LIBRARY_USERMANGAER )))
 
-LIBRARY = borrowrequest ? b -> userinfo ? u -> ((canlend-> lend!b-> LIBRARY) |~| (cannotlend-> LIBRARY))
+LIBRARY_CHECK= (borrowrequest ? b ->  check?c->LIBRARY_CHECK) [] (reserve?b->canreserve?c->LIBRARY_CHECK)
 
-USERBORROW = newuser ? u -> borrowrequest!Ave -> userinfo!u -> lend?b -> USERBORROW
+USERINIT = userinfo?u -> login!u ->(buymember->USERIDLE [] USERIDLE )
 
-SYSTEM_BORROW = (LIBRARY[| {|borrowrequest,userinfo,lend|} |] USERBORROW)\ {| borrowrequest,userinfo,lend |}
+USERIDLE = (borrowrequest?b ->check?c->(borrowed->USERIDLE |~| unavailable->USERIDLE )) [] (returnbook->USERIDLE) [] (logout->USERINIT) [] (reserve?b->canreserve?c->(reserved->USERIDLE |~| cannotreserve->USERIDLE ))
 
-LIBRARY_USERLOGIN = userinfo? u ->((login!u->LIBRARY_USERLOGIN) |~| (logout!u -> LIBRARY_USERLOGIN))
-
-NEWUSERLOGGIN = LIBRARY_USERMANGAER  [| {|userinfo|} |] LIBRARY_USERLOGIN
-SYSTEM2 = ( LIBRARY_USERMANGAER [| {|userinfo|} |] LIBRARY_USERLOGIN [| {|login,userinfo|} |] USERBORROW[| {|borrowrequest,userinfo,lend|} |]LIBRARY)\ {| login, userinfo |}
+LIBRARYINIT = (addbook?b->setbookcat->LIBRARYINIT) [] (removebook?b->LIBRARYINIT) [] ( newuser ? u -> userinfo!u-> LIBRARYINIT ) [] remove ? u -> ((removed-> LIBRARYINIT ) |~| (unabletoremove-> LIBRARYINIT  ))
 
 
 
+
+SYSTEM2 = LIBRARYINIT  [| {|userinfo|}|] USERINIT  [| {|check,borrowrequest,reserve,canreserve|}|]LIBRARY_CHECK
