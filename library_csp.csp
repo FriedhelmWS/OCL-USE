@@ -20,28 +20,41 @@ channel returnbook,buymember,setbookcat,borrowed, unavailable,reserved,logout,ca
 channel check,canreserve:AVAILABLE
 
 -- Check the book availability of a book for whether it can be borrowed (in the library and not been reserved)
--- and check whether it can be reserved (not in the library and not reserved by someone else)
+-- and check whether it can be reserved (whether has the membership and whether the book is able to be reserved)
+
 LIBRARY_CHECK= (borrowrequest ? b ->  check?c->LIBRARY_CHECK) [] (reserve?b->canreserve?c->LIBRARY_CHECK)
 
 -- Initialize the user by login, user can directly use the system or buy the member
+
 USERINIT = userinfo?u -> login!u ->(buymember->USERIDLE [] USERIDLE )
 
 -- Simulate the users in the library system, which can borrow, return, or reserve a book.
 -- Whether the book can be borrowed/reserved needs to be checked with the system
+
 USERIDLE = (borrowrequest?b ->check?c->(borrowed->USERIDLE |~| unavailable->USERIDLE )) [] (returnbook->USERIDLE) [] (logout->USERINIT) [] (reserve?b->canreserve?c->(reserved->USERIDLE |~| cannotreserve->USERIDLE ))
 
 -- Initialise the library system, where the admin could add/remove books and add/remove users. 
 -- Notice that to remove the user, it is necessary to check can the user be removed or not (for example, if the user has the book on borrow, then he cannot remove)
+
 LIBRARYINIT = (addbook?b->setbookcat->LIBRARYINIT) [] (removebook?b->LIBRARYINIT) [] ( newuser ? u -> userinfo!u-> LIBRARYINIT ) [] remove ? u -> ((removed-> LIBRARYINIT ) |~| (unabletoremove-> LIBRARYINIT  ))
 
 -- The entire library system
+
 LIBRARY_SYSTEM = LIBRARYINIT  [| {|userinfo|}|] USERINIT  [| {|check,borrowrequest,reserve,canreserve|}|]LIBRARY_CHECK
 
 -- For testing
 PROB_TEST_TRACE = addbook.Ave -> setbookcat -> login.Tom ->newuser.Tom -> userinfo.Tom -> login.Tom -> buymember -> borrowrequest.Ave -> check.no -> borrowed -> logout -> STOP
 
-GEN = left!Ave -> GEN [] left!Eno -> GEN [] left!Eau -> GEN
+TRUE_TEST_TRACE = addbook.Ave -> setbookcat ->newuser.Tom -> userinfo.Tom -> login.Tom -> buymember -> borrowrequest.Ave  -> borrowed -> logout -> STOP
 
-MAIN = LIBRARY_SYSTEM [| {|left|} |] GEN
+REMOVEUSER_TEST_TRACE = newuser.Tom -> userinfo.Tom ->remove.Tom->removed->STOP
+
+GEN = addbook!Ave -> GEN [] addbook!Eno -> GEN [] addbook!Eau -> GEN
+
+MAIN = LIBRARY_SYSTEM [| {|addbook|} |] GEN
 
 assert MAIN [T= PROB_TEST_TRACE
+
+assert MAIN [T= TRUE_TEST_TRACE
+
+assert MAIN [T= REMOVEUSER_TEST_TRACE
